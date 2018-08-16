@@ -33,6 +33,7 @@ from functools import wraps
 import contextlib
 import os
 import sys
+import glob
 import shutil
 import inspect
 import tempfile
@@ -229,6 +230,7 @@ class ImageComparison(object):
         remove_text = compare.kwargs.get('remove_text', False)
         backend = compare.kwargs.get('backend', 'agg')
         extension = compare.kwargs.get('extension', 'png')
+        multi = compare.kwargs.get('multi', False)
 
         if MPL_LT_15 and style == 'classic':
             style = os.path.join(os.path.dirname(__file__), 'classic.mplstyle')
@@ -257,6 +259,9 @@ class ImageComparison(object):
             baseline_remote = baseline_dir.startswith(('http://', 'https://'))
             if not baseline_remote:
                 baseline_dir = os.path.join(os.path.dirname(item.fspath.strpath), baseline_dir)
+
+            if baseline_remote and multi:
+                pytest.fail("Multi-baseline testing only works with local baselines.", pytrace=False)
 
             with plt.style.context(style, after_reset=True), switch_backend(backend):
 
@@ -295,51 +300,78 @@ class ImageComparison(object):
 
                     # Find path to baseline image
                     if baseline_remote:
-                        baseline_image_ref = _download_file(baseline_dir, filename)
+                        baseline_image_refs = [_download_file(baseline_dir, filename)]
                     else:
-                        baseline_image_ref = os.path.abspath(os.path.join(
-                            os.path.dirname(item.fspath.strpath), baseline_dir, filename))
+                        baseline_image_refs = [os.path.abspath(os.path.join(
+                            os.path.dirname(item.fspath.strpath), baseline_dir, filename))]
 
-                    if not os.path.exists(baseline_image_ref):
-                        pytest.fail("Image file not found for comparison test in: "
-                                    "\n\t{baseline_dir}"
-                                    "\n(This is expected for new tests.)\nGenerated Image: "
-                                    "\n\t{test}".format(baseline_dir=baseline_dir,
-                                                        test=test_image),
-                                    pytrace=False)
+                    # If multi is enabled, the given filename, without its extension, is assumed to be a directory in the baseline dir.
+                    # All files in this directory will be compared against, and if at least one of them matches, the test passes.
+                    # This conceptually only works with non-remote baselines!
+                    if multi:
+                        raw_name, ext = os.path.splitext(baseline_image_refs[0])
+                        baseline_image_refs = glob.glob(os.path.join(raw_name, "**", "*" + ext), recursive=True)
+                        if len(baseline_image_refs) == 0:
+                            pytest.fail("Image files not found for multi comparison test in: "
+                                        "\n\t{baseline_dir}"
+                                        "\n(This is expected for new tests.)\nGenerated Image: "
+                                        "\n\t{test}".format(baseline_dir=baseline_dir,
+                                                            test=test_image), pytrace=False)
 
-                    # distutils may put the baseline images in non-accessible places,
-                    # copy to our tmpdir to be sure to keep them in case of failure
-                    baseline_image = os.path.abspath(os.path.join(result_dir,
-                                                                  'baseline-' + filename))
-                    shutil.copyfile(baseline_image_ref, baseline_image)
-
-                    # Compare image size ourselves since the Matplotlib
-                    # exception is a bit cryptic in this case and doesn't show
-                    # the filenames
-                    expected_shape = imread(baseline_image).shape[:2]
                     actual_shape = imread(test_image).shape[:2]
-                    if expected_shape != actual_shape:
-                        error = SHAPE_MISMATCH_ERROR.format(expected_path=baseline_image,
-                                                            expected_shape=expected_shape,
-                                                            actual_path=test_image,
-                                                            actual_shape=actual_shape)
-                        pytest.fail(error, pytrace=False)
 
-                    msg = compare_images(baseline_image, test_image, tol=tolerance)
+                    has_passed = False
+                    all_msgs = ""
+                    i = -1
+                    for baseline_image_ref in baseline_image_refs:
+                        if not os.path.exists(baseline_image_ref):
+                            pytest.fail("Image file not found for comparison test in: "
+                                        "\n\t{baseline_dir}"
+                                        "\n(This is expected for new tests.)\nGenerated Image: "
+                                        "\n\t{test}".format(baseline_dir=baseline_dir, test=test_image), pytrace=False)
 
-                    if msg is None:
-                        shutil.rmtree(result_dir)
-                    else:
-                        pytest.fail(msg, pytrace=False)
+                        # distutils may put the baseline images in non-accessible places,
+                        # copy to our tmpdir to be sure to keep them in case of failure
+                        i += 1
+                        baseline_image = os.path.abspath(os.path.join(result_dir, 'baseline-' + i + '-' + filename))
+                        shutil.copyfile(baseline_image_ref, baseline_image)
+
+                        # Compare image size ourselves since the Matplotlib exception is a bit cryptic in this case
+                        # and doesn't show the filenames
+                        expected_shape = imread(baseline_image).shape[:2]
+                        if expected_shape != actual_shape:
+                            error = SHAPE_MISMATCH_ERROR.format(expected_path=baseline_image,
+                                                                expected_shape=expected_shape,
+                                                                actual_path=test_image,
+                                                                actual_shape=actual_shape)
+                            all_msgs += error + "\n\n"
+                            continue
+
+                        msg = compare_images(baseline_image, test_image, tol=tolerance)
+
+                        if msg is None:
+                            shutil.rmtree(result_dir)
+                            has_passed = True
+                            break
+                        else:
+                            all_msgs += msg + "\n\n"
+
+                    if not has_passed:
+                        pytest.fail(all_msgs, pytrace=False)
 
                 else:
 
                     if not os.path.exists(self.generate_dir):
                         os.makedirs(self.generate_dir)
 
-                    fig.savefig(os.path.abspath(os.path.join(self.generate_dir, filename)),
-                                **savefig_kwargs)
+                    fname = os.path.abspath(os.path.join(self.generate_dir, filename))
+                    if multi:
+                        raw_name, ext = os.path.splitext(fname)
+                        if not os.path.exists(raw_name):
+                            os.makedirs(raw_name)
+                        fname = os.path.join(raw_name, "generated" + ext)
+
+                    fig.savefig(fname, **savefig_kwargs)
                     close_mpl_figure(fig)
                     pytest.skip("Skipping test, since generating data")
 
