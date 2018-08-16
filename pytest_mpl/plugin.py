@@ -142,6 +142,9 @@ def pytest_addoption(parser):
     msg = "Enable comparison of matplotlib figures to reference files"
     group.addoption("--mpl", help=msg, action="store_true")
 
+    msg = "Same as --mpl, but only exists on the oggm fork"
+    group.addoption("--mpl-oggm", help=msg, action="store_true")
+
     msg = "directory to generate reference images in, relative to location where py.test is run"
     group.addoption("--mpl-generate-path", help=msg, action="store")
 
@@ -226,6 +229,7 @@ def pytest_configure(config):
 
     if (
         config.getoption("--mpl")
+        or config.getoption("--mpl-oggm")
         or config.getoption("--mpl-generate-path") is not None
         or config.getoption("--mpl-generate-hash-library") is not None
     ):
