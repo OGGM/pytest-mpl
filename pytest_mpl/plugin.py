@@ -228,6 +228,7 @@ class ImageComparison(object):
         style = compare.kwargs.get('style', 'classic')
         remove_text = compare.kwargs.get('remove_text', False)
         backend = compare.kwargs.get('backend', 'agg')
+        extension = compare.kwargs.get('extension', 'png')
 
         if MPL_LT_15 and style == 'classic':
             style = os.path.join(os.path.dirname(__file__), 'classic.mplstyle')
@@ -276,10 +277,10 @@ class ImageComparison(object):
                 # Find test name to use as plot name
                 filename = compare.kwargs.get('filename', None)
                 if filename is None:
-                    filename = item.name + '.png'
+                    filename = item.name + '.' + extension
                     filename = filename.replace('[', '_').replace(']', '_')
                     filename = filename.replace('/', '_')
-                    filename = filename.replace('_.png', '.png')
+                    filename = filename.replace('_.' + extension, '.' + extension)
 
                 # What we do now depends on whether we are generating the
                 # reference images or simply running the test.
