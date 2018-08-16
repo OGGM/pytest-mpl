@@ -1,10 +1,10 @@
-|Travis Build Status| |Coveralls coverage|
-
 About
 -----
 
 This is a plugin to facilitate image comparison for
 `Matplotlib <http://www.matplotlib.org>`__ figures in pytest.
+
+This fork adds a few OGGM specific features and enhancements.
 
 For each figure to test, the reference image is subtracted from the
 generated image, and the RMS of the residual is compared to a
@@ -240,10 +240,6 @@ install the latest version of the plugin then do::
 The reason for having to install the plugin first is to ensure that the
 plugin is correctly loaded as part of the test suite.
 
-.. |Travis Build Status| image:: https://travis-ci.org/matplotlib/pytest-mpl.svg?branch=master
-   :target: https://travis-ci.org/matplotlib/pytest-mpl
-.. |Coveralls coverage| image:: https://coveralls.io/repos/matplotlib/pytest-mpl/badge.svg
-   :target: https://coveralls.io/r/matplotlib/pytest-mpl
 .. |expected| image:: images/baseline-coords_overlay_auto_coord_meta.png
 .. |actual| image:: images/coords_overlay_auto_coord_meta.png
 .. |diff| image:: images/coords_overlay_auto_coord_meta-failed-diff.png
