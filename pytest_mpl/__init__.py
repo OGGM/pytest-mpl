@@ -1,1 +1,2 @@
-__version__ = '0.120.dev0'
+__version__ = '0.120.oggm'
+oggm = True
