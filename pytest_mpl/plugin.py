@@ -34,6 +34,7 @@ import contextlib
 import os
 import sys
 import glob
+import base64
 import shutil
 import inspect
 import tempfile
@@ -55,6 +56,26 @@ SHAPE_MISMATCH_ERROR = """Error: Image dimensions did not match.
     {expected_path}
   Actual shape: {actual_shape}
     {actual_path}"""
+
+
+def _upload_to_imgur(filename):
+    try:
+        import requests
+    except ImportError:
+        return "requests module missing, no image upload possible"
+
+    with open(filename, 'rb') as image_file:
+        img_data = base64.b64encode(image_file.read())
+
+    headers = {'Authorization': 'Client-ID 24d952aae51d11d'}
+    data = {'type': 'base64', 'name': os.path.basename(filename), 'image': img_data}
+
+    try:
+        r = requests.post("https://api.imgur.com/3/image", data=data, headers=headers)
+        r.raise_for_status()
+        return r.json()['data']['link']
+    except requests.exceptions.RequestException as e:
+        return "Image upload failed: {0}".format(e)
 
 
 def _download_file(baseline, filename):
@@ -333,7 +354,7 @@ class ImageComparison(object):
                         # distutils may put the baseline images in non-accessible places,
                         # copy to our tmpdir to be sure to keep them in case of failure
                         i += 1
-                        baseline_image = os.path.abspath(os.path.join(result_dir, 'baseline-' + i + '-' + filename))
+                        baseline_image = os.path.abspath(os.path.join(result_dir, 'baseline-' + str(i) + '-' + filename))
                         shutil.copyfile(baseline_image_ref, baseline_image)
 
                         # Compare image size ourselves since the Matplotlib exception is a bit cryptic in this case
@@ -357,6 +378,7 @@ class ImageComparison(object):
                             all_msgs += msg + "\n\n"
 
                     if not has_passed:
+                        all_msgs += "Test image: " + _upload_to_imgur(test_image) + "\n\n"
                         pytest.fail(all_msgs, pytrace=False)
 
                 else:
