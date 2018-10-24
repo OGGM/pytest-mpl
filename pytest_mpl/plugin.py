@@ -122,6 +122,8 @@ def pytest_addoption(parser):
                     "mirrors are specified)", action='store')
     group.addoption("--mpl-baseline-relative", help="interpret the baseline directory as "
                     "relative to the test location.", action="store_true")
+    group.addoption('--mpl-upload', action='store_true',
+                    help="Enable uploading of failed test images to imgur.")
 
     results_path_help = "directory for test results, relative to location where py.test is run"
     group.addoption('--mpl-results-path', help=results_path_help, action='store')
@@ -378,7 +380,8 @@ class ImageComparison(object):
                             all_msgs += msg + "\n\n"
 
                     if not has_passed:
-                        all_msgs += "Test image: " + _upload_to_imgur(test_image) + "\n\n"
+                        if self.config.getoption("--mpl-upload"):
+                            all_msgs += "Test image: " + _upload_to_imgur(test_image) + "\n\n"
                         pytest.fail(all_msgs, pytrace=False)
 
                 else:
