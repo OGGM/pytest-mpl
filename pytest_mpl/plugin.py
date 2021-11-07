@@ -32,6 +32,7 @@ import io
 import os
 import glob
 import json
+import base64
 import shutil
 import hashlib
 import inspect
@@ -54,6 +55,26 @@ SHAPE_MISMATCH_ERROR = """Error: Image dimensions did not match.
     {expected_path}
   Actual shape: {actual_shape}
     {actual_path}"""
+
+
+def _upload_to_imgur(filename):
+    try:
+        import requests
+    except ImportError:
+        return "requests module missing, no image upload possible"
+
+    with open(filename, 'rb') as image_file:
+        img_data = base64.b64encode(image_file.read())
+
+    headers = {'Authorization': 'Client-ID 24d952aae51d11d'}
+    data = {'type': 'base64', 'name': os.path.basename(filename), 'image': img_data}
+
+    try:
+        r = requests.post("https://api.imgur.com/3/image", data=data, headers=headers)
+        r.raise_for_status()
+        return r.json()['data']['link']
+    except requests.exceptions.RequestException as e:
+        return "Image upload failed: {0}".format(e)
 
 
 def _hash_file(in_stream):
@@ -116,6 +137,8 @@ def pytest_addoption(parser):
                     ", in --mpl-results-path. The type of the report should be "
                     "specified. Supported types are `html`, `json` and `basic-html`. "
                     "Multiple types can be specified separated by commas.")
+    group.addoption('--mpl-upload', action='store_true',
+                    help="Enable uploading of failed test images to imgur.")
 
     results_path_help = "directory for test results, relative to location where py.test is run"
     group.addoption('--mpl-results-path', help=results_path_help, action='store')
@@ -544,6 +567,9 @@ class ImageComparison:
                     diff_image = (result_dir / 'result-failed-diff.png').absolute()
                     cur_summ['diff_image'] = diff_image.relative_to(self.results_dir).as_posix()
                     cur_summ['status_msg'] = error_message
+
+        if self.config.getoption("--mpl-upload"):
+            all_msgs += "Test image: " + _upload_to_imgur(test_image) + "\n\n"
 
         summary.update(cur_summ)
         return all_msgs.strip()
