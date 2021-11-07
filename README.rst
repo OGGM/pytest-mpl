@@ -3,6 +3,8 @@
 
 ``pytest-mpl`` is a `pytest <https://docs.pytest.org>`__ plugin to facilitate image comparison for `Matplotlib <http://www.matplotlib.org>`__ figures.
 
+This fork adds a few OGGM specific features and enhancements.
+
 For each figure to test, an image is generated and then subtracted from an existing reference image.
 If the RMS of the residual is larger than a user-specified tolerance, the test will fail.
 Alternatively, the generated image can be hashed and compared to an expected value.
