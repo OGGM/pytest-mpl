@@ -20,7 +20,17 @@ def bar(height, **kwargs):
     return fig
 
 
+def _free_fig(func):
+    @wraps(func)
+    def free_wrapper(*args, **kwargs):
+        fig = func(*args, **kwargs)
+        plt.close(fig)
+        return fig
+    return free_wrapper
+
+
 def figure_test(test_function, **kwargs):
+    @_free_fig
     @pytest.mark.image
     @pytest.mark.hash
     @pytest.mark.mpl_image_compare(savefig_kwargs={'metadata': {'Software': None}}, **kwargs)
