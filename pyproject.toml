@@ -6,7 +6,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pytest-mpl"
+name = "pytest-mpl-oggm"
 authors = [
     { name = "Thomas Robitaille", email = "thomas.robitaille@gmail.com" },
 ]
