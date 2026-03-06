@@ -4,7 +4,7 @@ except ImportError:
     from importlib_metadata import PackageNotFoundError, version
 
 try:
-    __version__ = version("pytest_mpl") + ".oggm"
+    __version__ = version("pytest_mpl_oggm") + ".oggm"
 except PackageNotFoundError:
     __version__ = "unknown"
 
