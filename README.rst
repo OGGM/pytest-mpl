@@ -1,23 +1,39 @@
-``pytest-mpl``
-==============
+``pytest-mpl-oggm``
+===================
 
 ``pytest-mpl`` is a `pytest <https://docs.pytest.org>`__ plugin to facilitate image comparison for `Matplotlib <http://www.matplotlib.org>`__ figures.
 
-This fork adds a few OGGM specific features and enhancements.
+OGGM fork
+---------
+
+`pytest-mpl-oggm`` is a shallow fork that adds a few OGGM specific features
+and enhancements.
+
+Installation:
+
+.. code-block:: bash
+
+   pip install pytest-mpl-oggm
+
+To run the tests, pass ``--mpl-oggm`` to compare the returned figures to the
+reference images:
+
+.. code-block:: bash
+
+   pytest --mpl-oggm
+
+For more information about this fork, visit
+https://github.com/OGGM/pytest-mpl-oggm
+
+
+Upstream ``pytest-mpl``
+-----------------------
 
 For each figure to test, an image is generated and then subtracted from an existing reference image.
 If the RMS of the residual is larger than a user-specified tolerance, the test will fail.
 Alternatively, the generated image can be hashed and compared to an expected value.
 
 For more information, see the `pytest-mpl documentation <https://pytest-mpl.readthedocs.io>`__.
-
-Installation
-------------
-.. code-block:: bash
-
-   pip install pytest-mpl
-
-For detailed instructions, see the `installation guide <https://pytest-mpl.readthedocs.io/en/latest/installing.html>`__ in the ``pytest-mpl`` docs.
 
 Usage
 -----
