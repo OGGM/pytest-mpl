@@ -26,22 +26,14 @@ For more information about this fork, visit
 https://github.com/OGGM/pytest-mpl-oggm
 
 
-``pytest-mpl``
---------------
+Upstream ``pytest-mpl``
+-----------------------
 
 For each figure to test, an image is generated and then subtracted from an existing reference image.
 If the RMS of the residual is larger than a user-specified tolerance, the test will fail.
 Alternatively, the generated image can be hashed and compared to an expected value.
 
 For more information, see the `pytest-mpl documentation <https://pytest-mpl.readthedocs.io>`__.
-
-Installation
-------------
-.. code-block:: bash
-
-   pip install pytest-mpl
-
-For detailed instructions, see the `installation guide <https://pytest-mpl.readthedocs.io/en/latest/installing.html>`__ in the ``pytest-mpl`` docs.
 
 Usage
 -----
