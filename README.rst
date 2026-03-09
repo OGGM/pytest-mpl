@@ -1,27 +1,47 @@
 ``pytest-mpl-oggm``
 ===================
 
-``pytest-mpl`` is a `pytest <https://docs.pytest.org>`__ plugin to facilitate image
-comparison for `Matplotlib <http://www.matplotlib.org>`__ figures.
+``pytest-mpl`` is a `pytest <https://docs.pytest.org>`__ plugin to facilitate image comparison for `Matplotlib <http://www.matplotlib.org>`__ figures.
 
-``pytest-mpl-oggm`` is a shallow fork that adds a few OGGM specific features
+OGGM fork
+---------
+
+`pytest-mpl-oggm`` is a shallow fork that adds a few OGGM specific features
 and enhancements.
+
+Installation:
+
+.. code-block:: bash
+
+   pip install pytest-mpl-oggm
+
+To run the tests, pass ``--mpl-oggm`` to compare the returned figures to the
+reference images:
+
+.. code-block:: bash
+
+   pytest --mpl-oggm
+
+For more information about this fork, visit
+https://github.com/OGGM/pytest-mpl-oggm
+
+
+``pytest-mpl``
+--------------
 
 For each figure to test, an image is generated and then subtracted from an existing reference image.
 If the RMS of the residual is larger than a user-specified tolerance, the test will fail.
 Alternatively, the generated image can be hashed and compared to an expected value.
 
-For more information about the original ``pytest-mpl``, see the
-`pytest-mpl documentation <https://pytest-mpl.readthedocs.io>`__.
-
-For more information about this fork, visit https://github.com/OGGM/pytest-mpl-oggm
+For more information, see the `pytest-mpl documentation <https://pytest-mpl.readthedocs.io>`__.
 
 Installation
 ------------
 .. code-block:: bash
 
-   pip install pytest-mpl-oggm
+   pip install pytest-mpl
 
+For detailed instructions, see the `installation guide <https://pytest-mpl.readthedocs.io/en/latest/installing.html>`__ in the ``pytest-mpl`` docs.
 
 Usage
 -----
@@ -39,11 +59,17 @@ These image comparison tests are decorated with ``@pytest.mark.mpl_image_compare
        ax.plot([1, 2])
        return fig
 
-Then, run the test suite as usual, but pass ``--mpl-oggm`` to compare the returned figures to the reference images:
+Then, generate reference images by running the test suite with the ``--mpl-generate-path`` option:
 
 .. code-block:: bash
 
-   pytest --mpl-oggm
+   pytest --mpl-generate-path=baseline
+
+Then, run the test suite as usual, but pass ``--mpl`` to compare the returned figures to the reference images:
+
+.. code-block:: bash
+
+   pytest --mpl
 
 By also passing ``--mpl-generate-summary=html``, a summary of the image comparison results will be generated in HTML format:
 
@@ -52,6 +78,14 @@ By also passing ``--mpl-generate-summary=html``, a summary of the image comparis
 +---------------+---------------+---------------+
 
 For more information on how to configure and use ``pytest-mpl``, see the `pytest-mpl documentation <https://pytest-mpl.readthedocs.io>`__.
+
+Contributing
+------------
+``pytest-mpl`` is a community project maintained for and by its users.
+There are many ways you can help!
+
+- Report a bug or request a feature `on GitHub <https://github.com/matplotlib/pytest-mpl/issues>`__
+- Improve the documentation or code
 
 .. |html all| image:: docs/images/html_all.png
 .. |html filter| image:: docs/images/html_filter.png
